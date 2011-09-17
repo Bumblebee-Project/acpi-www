@@ -1,0 +1,40 @@
+## Use case
+We want to know the DSDT and SSDT tables from our users so we can create an
+application that automatically detects the right ACPI calls. Machine
+information from `dmidecode` must be attached too so we know from which
+manufacturer and model the tables are from.
+
+## Current practices
+These tables are available from the dump from the `acpidump` tool. Then,
+`acpixtract` extracts the SSDT and DSDT tables from the previous dump which can
+be converted to human-readable ASL using `iasl`.
+Until now, the user would have to:
+
+1. install `acpidump` and `iasl`
+2. Run `acpidump`, `acpixtract` and `iasl` to generate the human-readable ASL
+   files (*.dsl)
+3. Run `dmidecode` several times for the manufacturer and model info
+4. Create a tarball of the generated files (*.dsl and dmidecode.txt)
+5. Send the result to an emailaddress or mailing list
+
+## Comments
+Currently, the submission of the dsl files are scattered and the information
+often incomplete (missing machine information). Known places to find the ASL
+files are the mailing list of Launchpad Hybrid Graphics, the ACPI wiki page of
+Bumblebee-Project/Bumblebee and mailboxes of several developers. This makes it
+hard to get to the actual task: analysing the files.
+Furthermore, the current commands may be too complicated for the user, which
+may lead to errors in running the right command.
+
+## Goal
+The commands for the user should be as easy as possible and the submission less
+difficult, meaning that sending a mail may be too difficult since it involves
+opening the mail client, selecting the tarball as attachment and press "Send".
+For developers and other interested people, the next features should be
+available:
+
+- Search by machine information
+- Download each individual DSDT or SSDT table
+- Get a listing of submissions for each manufacturer, subdivided by product
+  names
+- Search through the headers of the ASL files (OEM ID, OEM Table ID)
