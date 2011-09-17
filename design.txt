@@ -38,3 +38,56 @@ available:
 - Get a listing of submissions for each manufacturer, subdivided by product
   names
 - Search through the headers of the ASL files (OEM ID, OEM Table ID)
+
+## Implementation
+The centralized place is a webserver which accepts uploads of dmidecode and
+acpidump data and compile the tables itself. This has the advantage that:
+
+- the user does not have to install iasl anymore
+- the `acpixtract` and `iasl` may be removed from the client commands
+  (simplification)
+- should there be any errors in the `iasl` or `acpixtract` tools on the
+  client-side, the resulting ASL files may contain errors too. Generating the
+  files on the server side ensures that the generated files have a consistent
+  formatting.
+
+## Workflow
+On the user side:
+
+1. The user installs acpidump
+2. For the ACPI dump, (s)he runs `sudo acpidump > acpidump.txt`
+3. Then (s)he writes the following dmidecode fields to `dmidecode.txt`:
+   - baseboard-manufacturer
+   - baseboard-product-name
+   - baseboard-version
+   - system-manufacturer
+   - system-product-name
+   - system-version
+   This can be done with:
+
+    for $keyword in $keywords; do dmidecode -s $keyword >> dmidecode.txt; done
+4. The files should then be submitted to the server using wget or curl or using
+   a web interface
+
+On the server side:
+
+1. The webserver validates the file size (1M should be reasonable, my tree
+   tables creates a file of size 212K) and dmidecode information. The checksum
+   of the acpidump.txt file is checked to avoid duplicate database entries
+2. If accepted, the file is pushed to a queue folder
+3. The result (duplicate, success or error) is displayed
+
+A cron job processes the queue, for each submission:
+
+1. It runs `acpixtract` to get DSDT.dat and SSDT[1-9].dat files (SSDT is
+   optional though and we need to set a sensible limit for number of SSDT
+   files)
+2. The resulting .dat files are disassembled to .dsl (ASL) files using `iasl`
+3. The .dsl files are validated
+4. If everything is valid, the DSDT and SSDT tables are saved using their
+   checksum
+
+### Directory structure
+/dsdt/SUM
+/ssdt/SUM
+/baseboard/manufacturer/
