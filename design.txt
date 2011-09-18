@@ -71,7 +71,9 @@ On the user side:
    This can be done with:
 
         : > dmidecode.txt
-        for $keyword in $keywords; do
+        for keyword in baseboard-manufacturer baseboard-product-name \
+            baseboard-version system-manufacturer system-product-name \
+            system-version; do
             printf "%-22s: %s\n" $keyword "$(sudo dmidecode -s $keyword)" \
                 >> dmidecode.txt
         done
@@ -115,7 +117,7 @@ looked up.
 /dsdt/SUM - dsdt table
 /ssdt/SUM - sdsdt table
 
-/submission/NUMBER/index.html -> links to dsdt, ssdt, lspci and dmidecode
+/submission/NUMBER/index.html -> links to tables, txt's and display notes
 /submission/NUMBER/lspci.txt
 /submission/NUMBER/dmidecode.txt
 
