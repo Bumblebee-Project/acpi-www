@@ -77,9 +77,17 @@ On the user side:
             printf "%-22s: %s\n" $keyword "$(sudo dmidecode -s $keyword)" \
                 >> dmidecode.txt
         done
+   In other words, each line contains `keyword               : value` (note the
+   padding between keyword and the colon)
 3. Store the PCI device info: `lspci -n > lspci.txt`
 4. The files should then be submitted to the server using wget or curl or using
    a web interface
+
+These steps should be available in a shellscript so the user does not have to
+copy the command which may result in an error. Example usage:
+
+    wget example.com/acpi-info -O acpi-info && bash acpi-info
+`-O acpi-info` is added explicitly to prevent existing files to be preserved.
 
 On the server side:
 
@@ -151,7 +159,11 @@ Data which can be retrieved from files ("caching"):
   - 6 fields of 32 chars (should contain unique values)
 - machine
   - PCI Bus ID (7 chars)
-  - Device ID
+  - Vendor ID (2 bytes, smallint in MySQL)
+  - Device ID (2 bytes, smallint in MySQL)
+- submissions
+  - timestamp (timestamp in MySQL, valid until 2038)
+  - notes (max 255 chars)
 XXX to be filled
 
 ### Preventing abuse
