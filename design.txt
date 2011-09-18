@@ -1,9 +1,9 @@
 ## Use case
 We want to know the DSDT and SSDT tables from our users so we can create an
-application that automatically detects the right ACPI calls. Machine
-information from `dmidecode` must be attached too so we know from which
-manufacturer and model the tables are from. To know which video card is used,
-information about PCI devices should be attached too
+application that automatically detects the right ACPI calls for disabling the
+nvidia graphics card. Machine information from `dmidecode` must be attached too
+so we know from which manufacturer and model the tables are from. To know which
+video card is used, information about PCI devices should be attached too
 
 ## Current practices
 These tables are available from the dump from the `acpidump` tool. Then,
@@ -75,24 +75,36 @@ On the user side:
             printf "%-22s: %s\n" $keyword "$(sudo dmidecode -s $keyword)" \
                 >> dmidecode.txt
         done
-3. Store the PCI device info: `sudo lspci -vvnn > lspci.txt`
+3. Store the PCI device info: `lspci -n > lspci.txt`
 4. The files should then be submitted to the server using wget or curl or using
    a web interface
 
 On the server side:
 
 1. The webserver validates the file size (1M should be reasonable, my three
-   tables creates a file of size 212K) and dmidecode information. The checksum
-   of the acpidump.txt file is checked to avoid duplicate database entries. In
-   addition, the format of dmidecode.txt is checked.
-2. If accepted, the file is pushed to a queue folder
-3. The result (duplicate, success or error) is displayed
+   tables creates a file of size 212K)
+2. dmidecode information is validated, each field should be present and the
+   value should not exceed X characters (X=32?). Format is "%-22s: %s"
+3. The checksum of `acpidump.txt` is checked. If it was not seen before, the
+   file is added to the acpixtract queue
+4. lspci.txt is queued for processing / processed
+5. The result (duplicate, success or error) is displayed
 
-A cron job processes the queue, for each submission:
+### lspci queue
+The contents of lspci.txt is checked which should match:
+"BusID DeviceClass: VendorID:DeviceID (rev NN)" where DeviceClass is a VGA
+compatible controller or a 3D controller. VendorID is 8086 for Intel
+Corporation and 10de for nVidia Corporation.
+Example for a GT425M:
 
-1. It runs `acpixtract` to get DSDT.dat and SSDT[1-9].dat files (SSDT is
-   optional though and we need to set a sensible limit for number of SSDT
-   files)
+    02:00.0 0300: 10de:0df0 (rev a1)
+Only the BusID (02:00.0) is important to us, the device ID (0df0) should be
+looked up.
+
+
+### acpixtract queue
+1. `acpixtract` is ran to get DSDT.dat and SSDT[1-9].dat files (SSDT is
+   optional but we need to set a sensible limit for number of SSDT tables)
 2. The resulting .dat files are disassembled to .dsl (ASL) files using `iasl`
 3. The .dsl files are validated
 4. If everything is valid, the DSDT and SSDT tables are saved using their
@@ -100,6 +112,47 @@ A cron job processes the queue, for each submission:
 5. The result of the commands are saved to a public log file
 
 ### Directory structure
-/dsdt/SUM
-/ssdt/SUM
-/baseboard/manufacturer/
+/dsdt/SUM - dsdt table
+/ssdt/SUM - sdsdt table
+
+/submission/NUMBER/index.html -> links to dsdt, ssdt, lspci and dmidecode
+/submission/NUMBER/lspci.txt
+/submission/NUMBER/dmidecode.txt
+
+Categories (need further thinking):
+/board-manufacturer/
+/board-product-name/
+/board-version/
+/sys-manufacturer/
+/sys-product-name/
+/sys-version/
+Consider:
+- linking to submissions
+- dividing manufacturer into product names
+- put this in a search form
+
+### Database
+machines
+- 1:1 DSDT
+- 1:N SSDT
+- 1:1 dmidecode.txt
+- 1:1 lspci.txt
+submissions
+- 1:1 machine (see "machines")
+- 1:1 dmidecode.txt
+- 1:1 metadata (submission date, user-supplied notes)
+
+for faster lookups a.k.a. caching:
+XXX to be filled
+
+### Preventing abuse
+Public services are always prone to abuse. There just needs to be one misbehaving idiot and we've another ton of mess to clean up. So, we must have some way to prevent abuse which include:
+
+- spammers inserting random glibberish
+- invalid acpidump.txt, dmidecode.txt or lspci.txt
+- spam notes
+
+Possible protections:
+
+- moderated upload, each upload has to be marked as accepted
+XXX to be filled
