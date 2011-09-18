@@ -83,8 +83,8 @@ On the user side:
 
 On the server side:
 
-1. The webserver validates the file size (1M should be reasonable, my three
-   tables creates a file of size 212K)
+1. The webserver validates the file size of `acpidump.txt` (1M should be
+   reasonable, my three tables creates a file of size 212K)
 2. dmidecode information is validated, each field should be present and the
    value should not exceed X characters (X=32?). Format is "%-22s: %s"
 3. The checksum of `acpidump.txt` is checked. If it was not seen before, the
@@ -139,12 +139,19 @@ machines
 - 1:N SSDT
 - 1:1 dmidecode.txt
 - 1:1 lspci.txt
+
 submissions
 - 1:1 machine (see "machines")
 - 1:1 dmidecode.txt
-- 1:1 metadata (submission date, user-supplied notes)
+- 1:1 metadata: submission date
+- 1:1 metadata: user-supplied notes
 
-for faster lookups a.k.a. caching:
+Data which can be retrieved from files ("caching"):
+- dmidecode
+  - 6 fields of 32 chars (should contain unique values)
+- machine
+  - PCI Bus ID (7 chars)
+  - Device ID
 XXX to be filled
 
 ### Preventing abuse
