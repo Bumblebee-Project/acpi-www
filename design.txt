@@ -117,13 +117,14 @@ looked up.
    optional but we need to set a sensible limit for number of SSDT tables)
 2. The resulting .dat files are disassembled to .dsl (ASL) files using `iasl`
 3. The .dsl files are validated
-4. If everything is valid, the DSDT and SSDT tables are saved using their
-   checksum
+4. If everything is valid, the DSDT and SSDT tables are saved into a directory
+  is named to the checksum of acpidump.txt
 5. The result of the commands are saved to a public log file
 
 ### Directory structure
-/dsdt/SUM - dsdt table
-/ssdt/SUM - sdsdt table
+/dump/SUM/ - listing of available tables
+/dump/SUM/dsdt.dsl - dsdt table
+/ssdt/SUM/SSDT*.dsl - ssdt table
 
 /submission/NUMBER/index.html -> links to tables, txt's and display notes
 /submission/NUMBER/lspci.txt
@@ -142,17 +143,25 @@ Consider:
 - put this in a search form
 
 ### Database
-machines
+machines (based on the acpidump.txt)
 - 1:1 DSDT
 - 1:N SSDT
+- 1:1 notes (stored in separate database table)
+
+submissions (N:1 with machines)
 - 1:1 dmidecode.txt
 - 1:1 lspci.txt
-
-submissions
-- 1:1 machine (see "machines")
 - 1:1 dmidecode.txt
 - 1:1 metadata: submission date
-- 1:1 metadata: user-supplied notes
+
+notes (1:1 with machines)
+This needs some thinking, perhaps we can use existing solutions (git) or look
+at other software (mediawiki) to get inspired for the best performance
+implementiation
+- notes (255 chars? personally, I don't think that it should be a long note
+  like a guide but something short like "rebranded BTO notebook, bto.eu")
+- timestamp of change (timestamp in MySQL)
+- some way to contact / identify the user (email? IP?)
 
 Data which can be retrieved from files ("caching"):
 - dmidecode
