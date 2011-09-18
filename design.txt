@@ -2,12 +2,14 @@
 We want to know the DSDT and SSDT tables from our users so we can create an
 application that automatically detects the right ACPI calls. Machine
 information from `dmidecode` must be attached too so we know from which
-manufacturer and model the tables are from.
+manufacturer and model the tables are from. To know which video card is used,
+information about PCI devices should be attached too
 
 ## Current practices
 These tables are available from the dump from the `acpidump` tool. Then,
 `acpixtract` extracts the SSDT and DSDT tables from the previous dump which can
-be converted to human-readable ASL using `iasl`.
+be converted to human-readable ASL using `iasl`. PCI device information is not
+attached at all.
 Until now, the user would have to:
 
 1. install `acpidump` and `iasl`
@@ -50,6 +52,8 @@ acpidump data and compile the tables itself. This has the advantage that:
   client-side, the resulting ASL files may contain errors too. Generating the
   files on the server side ensures that the generated files have a consistent
   formatting.
+- the receiver only needs to validate one file (acpidump.txt) instead of
+  several *.dsl files
 
 ## Workflow
 On the user side:
@@ -57,6 +61,7 @@ On the user side:
 1. The user installs acpidump
 2. For the ACPI dump, (s)he runs `sudo acpidump > acpidump.txt`
 3. Then (s)he writes the following dmidecode fields to `dmidecode.txt`:
+
    - baseboard-manufacturer
    - baseboard-product-name
    - baseboard-version
@@ -65,15 +70,21 @@ On the user side:
    - system-version
    This can be done with:
 
-    for $keyword in $keywords; do dmidecode -s $keyword >> dmidecode.txt; done
+        : > dmidecode.txt
+        for $keyword in $keywords; do
+            printf "%-22s: %s\n" $keyword "$(sudo dmidecode -s $keyword)" \
+                >> dmidecode.txt
+        done
+3. Store the PCI device info: `sudo lspci -vvnn > lspci.txt`
 4. The files should then be submitted to the server using wget or curl or using
    a web interface
 
 On the server side:
 
-1. The webserver validates the file size (1M should be reasonable, my tree
+1. The webserver validates the file size (1M should be reasonable, my three
    tables creates a file of size 212K) and dmidecode information. The checksum
-   of the acpidump.txt file is checked to avoid duplicate database entries
+   of the acpidump.txt file is checked to avoid duplicate database entries. In
+   addition, the format of dmidecode.txt is checked.
 2. If accepted, the file is pushed to a queue folder
 3. The result (duplicate, success or error) is displayed
 
@@ -86,6 +97,7 @@ A cron job processes the queue, for each submission:
 3. The .dsl files are validated
 4. If everything is valid, the DSDT and SSDT tables are saved using their
    checksum
+5. The result of the commands are saved to a public log file
 
 ### Directory structure
 /dsdt/SUM
