@@ -155,9 +155,7 @@ submissions (N:1 with machines)
 - 1:1 metadata: submission date
 
 notes (1:1 with machines)
-This needs some thinking, perhaps we can use existing solutions (git) or look
-at other software (mediawiki) to get inspired for the best performance
-implementiation
+Old notes gets removed by moderators
 - notes (255 chars? personally, I don't think that it should be a long note
   like a guide but something short like "rebranded BTO notebook, bto.eu")
 - timestamp of change (timestamp in MySQL)
@@ -185,4 +183,5 @@ Public services are always prone to abuse. There just needs to be one misbehavin
 Possible protections:
 
 - moderated upload, each upload has to be marked as accepted
-XXX to be filled
+- reCAPTCHA for the notes
+- Hope for the best and pray to God that evil people and machines do not exist
