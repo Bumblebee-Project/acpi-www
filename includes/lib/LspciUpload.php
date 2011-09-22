@@ -22,9 +22,10 @@ class LspciUpload extends Upload {
             '$/';
         $line_count = 0;
 
-        while ($line = fgets($fp)) {
+        // a line is 33 bytes including LF, 63 bytes is more than enough
+        while ($line = fgets($fp, 64)) {
             $line_count++;
-            if (!preg_match($lspci_line, trim($line))) {
+            if (!preg_match($lspci_line, rtrim($line))) {
                 fclose($fp);
                 throw new UploadException(
                     "Line $line_count in lspci file is malformed"

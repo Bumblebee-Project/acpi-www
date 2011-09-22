@@ -18,7 +18,7 @@ class AcpidumpUpload extends Upload {
         // required DSDT line is found and leave that as is
         $fp = $this->getFilePointer();
 
-        // a line should not be longer than 128 chars, in fact, a line is only
+        // a line should not be longer than 127 chars, in fact, a line is only
         // 74 bytes (counting a LF)
         while ($line = fread($fp, 128)) {
             if (substr($line, 0, 4) == 'DSDT') {
