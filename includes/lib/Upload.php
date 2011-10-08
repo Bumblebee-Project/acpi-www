@@ -15,10 +15,10 @@ class Upload {
         'A PHP extension stopped the file upload'
     );
 
-    public $name;
-    public $size;
-    public $tmp_name;
-    public $error;
+    protected $name;
+    protected $size;
+    protected $tmp_name;
+    protected $error;
 
     public function __construct ($upload_name) {
         if (!isset($_FILES[$upload_name]['error'])) {
@@ -37,7 +37,7 @@ class Upload {
     public function checkUploadErrors() {
         if ($this->error != UPLOAD_ERR_OK) {
             if (isset(self::$error_messages[$this->error])) {
-                $msg = self::$error[$this->error];
+                $msg = self::$error_messages[$this->error];
             } else {
                 $msg = "An unknown upload error occured ($this->error)";
             }
@@ -62,6 +62,16 @@ class Upload {
             );
         }
         return $fp;
+    }
+
+    public function saveTo($new_file) {
+        if (!move_uploaded_file($this->tmp_name, $new_file)) {
+            throw new UploadException("$this->name could not be saved.");
+        }
+    }
+
+    public function sha1sum() {
+        return sha1_file($this->tmp_name);
     }
 
     public function validateUpload() {}
