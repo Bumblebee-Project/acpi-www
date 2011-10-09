@@ -23,7 +23,10 @@ class DmidecodeUpload extends Upload {
 
     public function validateUpload() {
         $fp = $this->getFilePointer();
+        $line_count = 0;
         while ($line = fgets($fp)) {
+            $line_count++;
+
             if (strpos($line, ":") !== false) {
                 list($keyword, $val) = explode(":", $line, 2);
                 $keyword = trim($keyword);
