@@ -1,0 +1,35 @@
+<?php if ($this->hasVar('upload_error')): ?>
+The upload could not be processed because:
+<?php   echo $this->getVar('upload_error'); ?>
+<?php   if ($this->hasVar('submission_url')): ?>
+
+View the previous submission at:
+<?php       echo $this->getVarAsHtml('submission_url'); ?>
+<?php   endif;?>
+
+<?php endif;
+
+      if ($this->hasVar('database_error')): ?>
+The upload was rejected because we could not process it due to a database
+error. Sorry for any inconvenience caused, it is not your fault, but ours.
+Details:
+<?php   echo $this->getVar('database_error'); ?>
+
+<?php endif;
+
+      if ($this->hasVar('upload_success')): ?> 
+Your submission has been received and will be queued for processing.
+<?php
+        if ($this->hasVar('claim_key')):
+?>
+If you want to get credit for this anonymous submission, claim this submission
+at <?php echo $this->getVarAsHtml('claim_url'); ?>.
+<?php   else:
+            echo $this->getVar('claim_key_error');
+        endif;
+?>
+
+The submission itself can be viewed at <?php
+        echo $this->getVarAsHtml('submission_url');
+      endif; ?>
+
