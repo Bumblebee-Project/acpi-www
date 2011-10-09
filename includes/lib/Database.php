@@ -9,19 +9,19 @@
  * maintaining a simple DB connection ~Lekensteyn
  */
 class Database extends mysqli {
-    private $instance;
+    private static $instance;
 
     public static function getInstance() {
-        if (!$this->instance) {
-            $this->instance = new self;
+        if (!self::$instance) {
+            self::$instance = new self;
         }
-        return $this->instance;
+        return self::$instance;
     }
 
     private function __construct() {
         global $db_host, $db_user, $db_pass, $db_name;
         parent::__construct($db_host, $db_user, $db_pass, $db_name);
-        if (!$this->connect_error) {
+        if ($this->connect_error) {
             throw new DatabaseException(
                 'A database connection could not be established.'
             );
